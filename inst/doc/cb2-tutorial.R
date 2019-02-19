@@ -24,7 +24,7 @@ system("head -8 {FASTQ}" %>% glue)
 
 ## ------------------------------------------------------------------------
 ex_path <- system.file("extdata", "toydata", package = "CB2")
-Sys.glob("{ex_path}/*.fastq" %>% glue)
+Sys.glob("{ex_path}/*.fastq" %>% glue) %>% basename()
 
 ## ------------------------------------------------------------------------
 df_design <- tribble(
@@ -59,6 +59,9 @@ calc_mappability(cb2_count, df_design)
 
 ## ------------------------------------------------------------------------
 plot_PCA(cb2_count$count %>% get_CPM, df_design)
+
+## ------------------------------------------------------------------------
+plot_corr_heatmap(cb2_count$count %>% get_CPM, df_design)
 
 ## ------------------------------------------------------------------------
 sgrna_stat <- run_estimation(cb2_count$count, df_design, "High", "Base")
