@@ -9,12 +9,13 @@ using namespace arma;
 //'
 //' @param ref_path the path of the annotation file and it has to be a FASTA formatted file.
 //' @param fastq_path a list of the FASTQ files.
+//' @param sample_ratio will be treated as a ratio of the subsamping for each NGS file if a numeric value belongs to the parameter.
 //'
 //' @importFrom Rcpp evalCpp
 //' @useDynLib CB2
 //' @export
 // [[Rcpp::export]]
-Rcpp::List quant(std::string ref_path, std::vector<std::string> fastq_path) {
+Rcpp::List quant(std::string ref_path, std::vector<std::string> fastq_path, Rcpp::Nullable<double> sample_ratio) {
   gRNA_Reference ref(ref_path.c_str());
   Rcpp::DataFrame df = Rcpp::DataFrame();
   std::vector<long long> sgRNA_hash;
@@ -31,7 +32,7 @@ Rcpp::List quant(std::string ref_path, std::vector<std::string> fastq_path) {
   int j = 0;
   for(auto &f : fastq_path) {
     sgRNA_MAP smap(ref);
-    smap.run_MAP(f.c_str());
+    smap.run_MAP(f.c_str(), sample_ratio.isNotNull(), sample_ratio.isNotNull() ? Rcpp::as<double>(sample_ratio) : 0);
     for(int i = 0; i < N ; ++i) {
       sgRNA_count(i,j) = smap.cnt[sgRNA_hash[i]];
     }
@@ -39,6 +40,7 @@ Rcpp::List quant(std::string ref_path, std::vector<std::string> fastq_path) {
     j++;
   }
   return Rcpp::List::create(Rcpp::_["sgRNA"] = sgRNA_name, 
+                            Rcpp::_["sequence"] = ref.seq, 
                             Rcpp::_["count"] = sgRNA_count,
                             Rcpp::_["total"] = total_read_count);
 }

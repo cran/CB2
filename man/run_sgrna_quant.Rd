@@ -4,17 +4,20 @@
 \alias{run_sgrna_quant}
 \title{A function to run a sgRNA quantification algorithm from NGS sample}
 \usage{
-run_sgrna_quant(lib_path, design)
+run_sgrna_quant(lib_path, design, sampling_ratio = NULL)
 }
 \arguments{
 \item{lib_path}{The path of the annotation file.}
 
 \item{design}{A table contains the study design. It must contain `fastq_path` and `sample_name.`}
+
+\item{sampling_ratio}{NULL as a default, and will be treated as a ratio of the subsamping for each NGS file if a numeric value belongs to the parameter.}
 }
 \value{
-It will return a list, and the list contains two elements. 
-  The first element (`count`) is a data frame contains the result of the quantification for each sample. 
-  The second element (`total`) is a numeric vector contains the total number of reads of each sample.
+It will return a list, and the list contains three elements. 
+  The first element (`count') is a data frame contains the result of the quantification for each sample. 
+  The second element (`total') is a numeric vector contains the total number of reads of each sample.
+  The last element (`sequence') a data frame contains the sequence of each sgRNA in the library.
 }
 \description{
 A function to run a sgRNA quantification algorithm from NGS sample
