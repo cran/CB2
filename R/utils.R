@@ -15,8 +15,10 @@ rep.row <- function(x, n) matrix(rep(x, each = n), nrow = n)
 #' 
 #' @export
 get_CPM <- function(sgcount) {
-    nmat <- rep.row(colSums(sgcount), nrow(sgcount))
-    sgcount/nmat * 10^6
+    cols <- which(sapply(sgcount, class) == "numeric")
+    nmat <- rep.row(colSums(sgcount[,cols]), nrow(sgcount[,cols]))
+    sgcount[,cols] <- sgcount[,cols]/nmat * 10^6
+    sgcount
 }
 
 #' A function to plot the first two principal components of samples.
@@ -35,7 +37,8 @@ get_CPM <- function(sgcount) {
 #'  
 #' @export
 plot_PCA <- function(sgcount, df_design) {
-    pca_obj <- sgcount %>% t %>% prcomp
+    cols <- which(sapply(sgcount, class) == "numeric")
+    pca_obj <- sgcount[,cols] %>% t %>% prcomp
     importance <- summary(pca_obj)$importance
     prop_pc1 <- importance[2,1]
     prop_pc2 <- importance[2,2]
@@ -64,7 +67,8 @@ plot_PCA <- function(sgcount, df_design) {
 #' plot_corr_heatmap(Evers_CRISPRn_RT112$count, Evers_CRISPRn_RT112$design)
 #' @export
 plot_corr_heatmap <- function(sgcount, df_design, cor_method = "pearson") {
-    sgcount %>% cor(method = cor_method) %>% 
+    cols <- which(sapply(sgcount, class) == "numeric") 
+    sgcount[,cols] %>% cor(method = cor_method) %>% 
         pheatmap::pheatmap(display_numbers = T, 
                            number_format = "%.2f", 
                            annotation_col = df_design %>% 
@@ -113,11 +117,20 @@ calc_mappability <- function(count_obj, df_design) {
 #' @return A tall-thin and combined table of the sgRNA read counts and study design will be returned.
 join_count_and_design <- function(sgcount, df_design) {
     cols <- colnames(sgcount)
-    sgcount %>% as.data.frame(stringsAsFactors=F) %>% 
-        tibble::rownames_to_column("sgRNA") %>% 
-        tidyr::gather_(key_col = "sample_name", value_col = "count", 
-                       gather_cols = cols) %>% 
-        dplyr::left_join(df_design, by = "sample_name") 
+    
+    if(all(sapply(sgcount, class) == "numeric")) {
+        sgcount %>% as.data.frame(stringsAsFactors=F) %>% 
+            tibble::rownames_to_column("sgRNA") %>% 
+            tidyr::gather_(key_col = "sample_name", value_col = "count", 
+                           gather_cols = cols) %>% 
+            dplyr::left_join(df_design, by = "sample_name") 
+    } else {
+        cols <- colnames(sgcount)[sapply(sgcount, class) == "numeric"]
+        sgcount %>% as.data.frame(stringsAsFactors=F) %>% 
+            tidyr::gather_(key_col = "sample_name", value_col = "count", 
+                           gather_cols = cols) %>% 
+            dplyr::left_join(df_design, by = "sample_name") 
+    }
 }
 
 #' A function to plot read count distribution.
@@ -136,7 +149,7 @@ join_count_and_design <- function(sgcount, df_design) {
 #' @export
 plot_count_distribution <- function(sgcount, df_design) {
     join_count_and_design(sgcount, df_design) %>% 
-        dplyr::mutate_(count = ~ 1+log2(count)) %>% 
+        dplyr::mutate_(count = ~ log2(1+count)) %>% 
         ggplot2::ggplot(ggplot2::aes_string(x="count")) + 
         ggplot2::geom_density(ggplot2::aes_string(fill = "group")) + 
         ggplot2::facet_wrap(~sample_name, ncol = 1) +
@@ -147,7 +160,10 @@ plot_count_distribution <- function(sgcount, df_design) {
 #' @param sgcount The input matrix contains read counts of sgRNAs for each sample.
 #' @param df_design The table contains a study design.
 #' @param gene The gene to be shown.
-#' @importFrom stats prcomp
+#' @param ge_id A name of the column contains gene names.
+#' @param sg_id A name of the column contains sgRNA IDs.
+#' 
+#' @importFrom stats prcomp as.formula
 #' @return A ggplot2 object contains dot plots of sgRNA read counts for a gene.
 #' 
 #' @examples 
@@ -156,14 +172,37 @@ plot_count_distribution <- function(sgcount, df_design) {
 #' plot_dotplot(get_CPM(Evers_CRISPRn_RT112$count), Evers_CRISPRn_RT112$design, "RPS7")
 #' 
 #' @export 
-plot_dotplot <- function(sgcount, df_design, gene) {
-    if(sum(stringr::str_detect(rownames(sgcount), glue::glue("^{gene}")))==0) {
-        stop(glue::glue("{gene} is not in sgcount."))
+plot_dotplot <- function(sgcount, df_design, gene, ge_id = NULL, sg_id = NULL) {
+    if(all(sapply(sgcount, class) == "numeric")) {
+        if(sum(stringr::str_detect(rownames(sgcount), glue::glue("^{gene}")))==0) {
+            stop(glue::glue("{gene} is not in sgcount."))
+        }
+        
+        join_count_and_design(sgcount, df_design) %>% 
+            dplyr::filter_(~stringr::str_detect(sgRNA, glue::glue("^{gene}"))) %>% 
+            ggplot2::ggplot(ggplot2::aes_string(x = "group", y = "count")) + 
+            ggplot2::geom_dotplot(ggplot2::aes_string(fill = "group", color = "group"), binaxis = "y", stackdir = "center", stackratio = 1.5, dotsize = 1.2) + 
+            ggplot2::facet_wrap(~sgRNA, scales = "free_y") + ggplot2::ggtitle(gene)
+    } else {
+        if(is.null(ge_id) || is.null(sg_id)) {
+            stop("ge_id and sg_id should not be null.")
+        }
+        if(!(ge_id %in% colnames(sgcount))) {
+            stop("ge_id is not found in sgcount.")
+        } 
+        if(!(sg_id %in% colnames(sgcount))) {
+            stop("sg_id is not found in sgcount.")
+        } 
+        
+        df <- join_count_and_design(sgcount, df_design)
+        df <- df[df[,ge_id]==gene,]
+        if(nrow(df) == 0) {
+            stop(glue::glue("{gene} is not in sgcount."))
+        }
+        df %>% ggplot2::ggplot(ggplot2::aes_string(x = "group", y = "count")) + 
+            ggplot2::geom_dotplot(ggplot2::aes_string(fill = "group", color = "group"), binaxis = "y", stackdir = "center", stackratio = 1.5, dotsize = 1.2) + 
+            ggplot2::facet_wrap(as.formula(paste("~", sg_id)), scales = "free_y") + ggplot2::ggtitle(gene)
     }
-
-    join_count_and_design(sgcount, df_design) %>% 
-        dplyr::filter_(~stringr::str_detect(sgRNA, glue::glue("^{gene}"))) %>% 
-        ggplot2::ggplot(ggplot2::aes_string(x = "group", y = "count")) + 
-        ggplot2::geom_dotplot(ggplot2::aes_string(fill = "group", color = "group"), binaxis = "y", stackdir = "center", stackratio = 1.5, dotsize = 1.2) + 
-        ggplot2::facet_wrap(~sgRNA, scales = "free_y")
+    
 }
+
