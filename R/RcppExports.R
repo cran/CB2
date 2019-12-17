@@ -5,13 +5,13 @@
 #'
 #' @param ref_path the path of the annotation file and it has to be a FASTA formatted file.
 #' @param fastq_path a list of the FASTQ files.
-#' @param sample_ratio will be treated as a ratio of the subsamping for each NGS file if a numeric value belongs to the parameter.
+#' @param verbose Display some logs during the quantification if it is set to `true`.
 #'
 #' @importFrom Rcpp evalCpp
 #' @useDynLib CB2
 #' @export
-quant <- function(ref_path, fastq_path, sample_ratio) {
-    .Call('_CB2_quant', PACKAGE = 'CB2', ref_path, fastq_path, sample_ratio)
+quant <- function(ref_path, fastq_path, verbose = FALSE) {
+    .Call('_CB2_quant', PACKAGE = 'CB2', ref_path, fastq_path, verbose)
 }
 
 #' A C++ function to perform a parameter estimation for the sgRNA-level test. 

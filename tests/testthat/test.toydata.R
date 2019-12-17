@@ -40,25 +40,34 @@ test_that("A very simple sanity check", {
   
 })
 
-
-test_that("Testing whether subsamplings with the same seed are identical.", {
-  set.seed(123)
-  cb2_count <- run_sgrna_quant(FASTA, df_design, sampling_ratio = 0.5)
+test_that("Check whether CB2 can handle gzipped file", {
+  df_design_gz <- data.frame()
+  for(g in c("Low", "High", "Base")) {
+    for(i in 1:2) {
+      FASTQ <- system.file("extdata", "toydata", "gzipped",
+                           sprintf("%s%d.fastq.gz", g, i), 
+                           package = "CB2")
+      df_design_gz <- rbind(df_design_gz, 
+                         data.frame(
+                           group = g, 
+                           sample_name = sprintf("%s%d", g, i),
+                           fastq_path = FASTQ, 
+                           stringsAsFactors = F)
+      )
+    }
+  }
   
-  set.seed(123)
-  cb2_count2 <- run_sgrna_quant(FASTA, df_design, sampling_ratio = 0.5)
+  expect_length((cb2_count <- run_sgrna_quant(FASTA, df_design)), 3)
+  expect_length((cb2_count_gz <- run_sgrna_quant(FASTA, df_design_gz)), 3)
   
-  expect_identical(cb2_count, cb2_count2)
+  testthat::expect_true(all(cb2_count_gz$count == cb2_count$count))
 })
 
-test_that("Testing whether the subsampling code works as intended.", {
-  cb2_count_nosubs <- run_sgrna_quant(FASTA, df_design)
 
-  for( i in seq(0.1, 0.9, 0.1)) {
-    set.seed(123)
-    cb2_count <- run_sgrna_quant(FASTA, df_design, sampling_ratio = i)
-    expect_equal(sum(dplyr::between(cb2_count$total / cb2_count_nosubs$total, i-0.1, i+0.1)), length(cb2_count$total))
-  }
+test_that("Test parallelized quantification.", {
+    testthat::expect_length(run_sgrna_quant(FASTA, df_design, ncores = 1), 3)
+    #testthat::expect_length(run_sgrna_quant(FASTA, df_design, ncores = -1), 3)
+    testthat::expect_length(run_sgrna_quant(FASTA, df_design, ncores = 2), 3)
 })
 
 # test_that("The result has to be consistent to the publication", {
@@ -93,7 +102,7 @@ test_that("Testing error handling of the measure_sgrna_stats.", {
   expect_error(measure_sgrna_stats(df_cb2, Evers_CRISPRn_RT112$design, "before", "after"),  
                paste0("sgcount contains some character columns. ", 
                       "It may need to specify both ge_id and sg_id."))
-
+  
   expect_error(measure_sgrna_stats(Evers_CRISPRn_RT112$count, 
                                    Evers_CRISPRn_RT112$design, 
                                    "before", "after", "-"),  
@@ -112,4 +121,3 @@ test_that("Testing error handling of the measure_sgrna_stats.", {
   
   
 })
-

@@ -7,15 +7,15 @@
 using namespace Rcpp;
 
 // quant
-Rcpp::List quant(std::string ref_path, std::vector<std::string> fastq_path, Rcpp::Nullable<double> sample_ratio);
-RcppExport SEXP _CB2_quant(SEXP ref_pathSEXP, SEXP fastq_pathSEXP, SEXP sample_ratioSEXP) {
+Rcpp::List quant(std::string ref_path, std::vector<std::string> fastq_path, bool verbose);
+RcppExport SEXP _CB2_quant(SEXP ref_pathSEXP, SEXP fastq_pathSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type ref_path(ref_pathSEXP);
     Rcpp::traits::input_parameter< std::vector<std::string> >::type fastq_path(fastq_pathSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<double> >::type sample_ratio(sample_ratioSEXP);
-    rcpp_result_gen = Rcpp::wrap(quant(ref_path, fastq_path, sample_ratio));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(quant(ref_path, fastq_path, verbose));
     return rcpp_result_gen;
 END_RCPP
 }

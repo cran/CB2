@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Hyun-Hwan Jeong" />
+
+<meta name="date" content="2019-12-16" />
+
+<title>Handling the input matrix in CB2</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Handling the input matrix in CB2</h1>
+<h4 class="author">Hyun-Hwan Jeong</h4>
+<h4 class="date">2019-12-16</h4>
+
+
+
+<p>If an analysis starts with an input matrix, it has to be appropriately pre-proceed before it is used any functions of <code>CB2</code>. <code>CB2</code> allows two different types of input: a numeric matrix/data frame with <code>row.names</code> and a data.frame contains columns of counts and columns of sgRNA IDs and target genes. Either of them will work. This document explains how the input should be formed and how to process the input using <code>CB2</code>. In the entire document, <span class="citation">(Evers et al. 2016)</span>’s CRISPR-RT112 screen data are used.</p>
+<p>The following code imports required packages which are required to run below codes.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">library</span>(CB2)</a></code></pre></div>
+<pre><code>## Registered S3 method overwritten by &#39;R.oo&#39;:
+##   method        from       
+##   throw.default R.methodsS3</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">library</span>(dplyr)</a></code></pre></div>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">library</span>(readr)</a></code></pre></div>
+<p>The following code block shows an example of the first type of input which <code>CB2</code> can handle. Each column of <code>Evers_CRISPRn_RT112$count</code> contains counts of guide RNAs of a sample (that was initially extracted from NGS data). A count of the input shows that how many guide RNA barcodes were observed from a given NGS sample. Each row of the matrix has a row name (e.g., <code>RPS19_sg10</code>), and the name is the ID of a guide RNA. For example, <code>RPS19_sg10</code>, which is the first-row name in the example, indicates that the first row contains the counts of <code>RPS_sg10</code> guide RNA. Every guide RNA ID <strong>must have exactly one <code>_</code> character</strong>, and it is used to be a separator of two strings. The first string displays the name of a gene whose gene is targeted by the guide RNA, and the second string is used as an identifier among guide RNAs that targets the same gene. For example, <code>RPS_sg10</code> indicates that the guide RNA is designed to target the <code>RPS</code> gene, and <code>sg10</code> is the unique identifier.</p>
+<p><strong>NOTE :</strong> If the input contains multiple <code>_</code> characters, <code>CB2</code> is not able to run. In particular, if Entrez gene IDs are used as the gene names, <code>CB2</code> does not handle the input. One of the solutions for this case is changing the gene names to another identifier (e.g., HGNC symbol) or using another type of input, which will explain below.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">data</span>(<span class="st">&quot;Evers_CRISPRn_RT112&quot;</span>)</a>
+<a class="sourceLine" id="cb8-2" title="2"><span class="kw">head</span>(Evers_CRISPRn_RT112<span class="op">$</span>count)</a></code></pre></div>
+<pre><code>##               B1   B2   B3   A1   A2   A3
+## RPS19_sg10 10180 9768 9406 1005 1186  911
+## NUP93_sg4   9073 8598 8363  688  479  581
+## PSMD11_sg2  9408 9573 9384 1014 1196  797
+## RPS3A_sg3   8922 8965 8779 1266 1303 1176
+## PSMB3_sg3   7434 6958 6871  450  628  398
+## POLR2A_sg5  7672 7537 7259  647  786  683</code></pre>
+<p>In addition, <code>CB2</code> requires experiement design information which is formed as a data.frame and contains sample names and groups of each sample. In <code>Evers_CRISPRn_RT112</code> data, <code>Evers_CRISPRn_RT112$design</code> is the data.frame.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1">Evers_CRISPRn_RT112<span class="op">$</span>design</a></code></pre></div>
+<pre><code>## # A tibble: 6 x 2
+##   group  sample_name
+##   &lt;chr&gt;  &lt;chr&gt;      
+## 1 before B1         
+## 2 before B2         
+## 3 before B3         
+## 4 after  A1         
+## 5 after  A2         
+## 6 after  A3</code></pre>
+<p>With the two variables, <code>CB2</code> can perform the hypothesis test with <code>measure_sgrna_stats</code> and <code>measure_gene_stats</code> functions.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1">sgrna_stats &lt;-<span class="st"> </span><span class="kw">measure_sgrna_stats</span>(Evers_CRISPRn_RT112<span class="op">$</span>count, Evers_CRISPRn_RT112<span class="op">$</span>design, <span class="st">&quot;before&quot;</span>, <span class="st">&quot;after&quot;</span>)</a>
+<a class="sourceLine" id="cb12-2" title="2">gene_stats &lt;-<span class="st"> </span><span class="kw">measure_gene_stats</span>(sgrna_stats)</a>
+<a class="sourceLine" id="cb12-3" title="3"><span class="kw">head</span>(gene_stats)</a></code></pre></div>
+<pre><code>## # A tibble: 6 x 11
+##   gene  n_sgrna cpm_a cpm_b  logFC     p_ts     p_pa     p_pb   fdr_ts
+##   &lt;chr&gt;   &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 ABCG8      10 1101. 1540.  0.481 1.03e-18 1.00e+ 0 2.41e-21 1.56e-18
+## 2 ADH7       10  799. 1173.  0.522 4.88e-20 1.00e+ 0 1.10e-22 8.55e-20
+## 3 CABP5      10 1171. 1662.  0.493 2.10e-21 1.00e+ 0 4.55e-24 4.64e-21
+## 4 COPA       10  860.  413. -1.51  4.41e-33 5.48e-33 8.12e- 1 1.37e-31
+## 5 COPB1      10 1054.  498. -1.57  3.29e-25 3.04e-24 5.31e- 1 1.26e-24
+## 6 COPS2      10 1055.  842. -0.728 6.56e-19 4.85e-12 1.43e- 4 1.03e-18
+## # … with 2 more variables: fdr_pa &lt;dbl&gt;, fdr_pb &lt;dbl&gt;</code></pre>
+<p>Another input type is a data.frame that contains two additional columns, which contain the guide RNA information (target gene and guide RNA identifier). A CSV file which was used in the <code>CB2</code> publication (<span class="citation">(Jeong et al. 2019)</span>). The CSV file contains the additional columns, the first is the <code>gene</code> column, and the second is the <code>sgRNA</code> column.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">df &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;https://raw.githubusercontent.com/hyunhwaj/CB2-Experiments/master/01_gene-level-analysis/data/Evers/CRISPRn-RT112.csv&quot;</span>)</a></code></pre></div>
+<pre><code>## Parsed with column specification:
+## cols(
+##   gene = col_character(),
+##   sgRNA = col_character(),
+##   B1 = col_double(),
+##   B2 = col_double(),
+##   B3 = col_double(),
+##   A1 = col_double(),
+##   A2 = col_double(),
+##   A3 = col_double()
+## )</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1">df</a></code></pre></div>
+<pre><code>## # A tibble: 961 x 8
+##    gene   sgRNA       B1    B2    B3    A1    A2    A3
+##    &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 RPS19  RPS19-10 10180  9768  9406  1005  1186   911
+##  2 NUP93  NUP93-4   9073  8598  8363   688   479   581
+##  3 PSMD11 PSMD11-2  9408  9573  9384  1014  1196   797
+##  4 RPS3A  RPS3A-3   8922  8965  8779  1266  1303  1176
+##  5 PSMB3  PSMB3-3   7434  6958  6871   450   628   398
+##  6 POLR2A POLR2A-5  7672  7537  7259   647   786   683
+##  7 RPS8   RPS8-8    6999  6966  6775   673   665   474
+##  8 RPL36  RPL36-3   5988  5893  5498   266   276   201
+##  9 RPS13  RPS13-4   5763  5546  5131   187   191   196
+## 10 RPS11  RPS11-2   9444  9621  8835  1900  2213  1705
+## # … with 951 more rows</code></pre>
+<p>Two additional parameters have to be set to the <code>measure_sgrna_stats</code> function if an input matrix is this type. The first parameter is <code>ge_id</code>, which specifies the column of genes, and the second parameter is <code>sg_id</code>, which specifies the column of IDs. In the following code, <code>gene_id</code> sets as <code>gene</code> and <code>sg_id</code> sets as <code>sgRNA</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" title="1"><span class="kw">head</span>(<span class="kw">measure_sgrna_stats</span>(df, Evers_CRISPRn_RT112<span class="op">$</span>design, <span class="st">&quot;before&quot;</span>, <span class="st">&quot;after&quot;</span>, <span class="dt">ge_id =</span> <span class="st">&#39;gene&#39;</span>, <span class="dt">sg_id =</span> <span class="st">&#39;sgRNA&#39;</span>))</a></code></pre></div>
+<pre><code>##     gene    sgRNA n_a n_b      phat_a       vhat_a       phat_b
+## 1  RPS19 RPS19-10   3   3 0.002323257 5.369646e-10 0.0003257504
+## 2  NUP93  NUP93-4   3   3 0.002060560 7.828460e-10 0.0001838979
+## 3 PSMD11 PSMD11-2   3   3 0.002244954 1.772784e-10 0.0003147378
+## 4  RPS3A  RPS3A-3   3   3 0.002110486 1.666823e-10 0.0003935102
+## 5  PSMB3  PSMB3-3   3   3 0.001683100 8.591075e-10 0.0001547065
+## 6 POLR2A POLR2A-5   3   3 0.001778234 1.404884e-10 0.0002229180
+##         vhat_b    cpm_a    cpm_b     logFC    t_value       df
+## 1 4.174644e-10 2323.275 325.7290 -2.830614  -64.65714 3.938262
+## 2 3.300861e-10 2060.586 183.9145 -3.478824  -56.25377 3.432003
+## 3 8.295566e-10 2246.609 314.6832 -2.831842  -60.83125 2.817477
+## 4 4.133227e-11 2111.801 393.9205 -2.419522 -119.04667 2.934424
+## 5 3.831946e-10 1683.145 154.6872 -3.435294  -43.36323 3.488096
+## 6 2.109228e-10 1778.610 222.9897 -2.990057  -82.96805 3.845513
+##           p_ts         p_pa      p_pb       fdr_ts       fdr_pa    fdr_pb
+## 1 4.148366e-07 2.074183e-07 0.9999998 4.714939e-05 2.357470e-05 0.9999999
+## 2 3.271576e-06 1.635788e-06 0.9999984 6.164676e-05 3.273760e-05 0.9999999
+## 3 1.761248e-05 8.806242e-06 0.9999912 1.071240e-04 7.693454e-05 0.9999999
+## 4 1.685127e-06 8.425636e-07 0.9999992 5.772537e-05 2.886268e-05 0.9999999
+## 5 6.833235e-06 3.416617e-06 0.9999966 8.042437e-05 4.512440e-05 0.9999999
+## 6 2.121616e-07 1.060808e-07 0.9999999 4.714939e-05 2.357470e-05 0.9999999</code></pre>
+<div id="references" class="section level3 unnumbered">
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-evers2016crispr">
+<p>Evers, Bastiaan, Katarzyna Jastrzebski, Jeroen PM Heijmans, Wipawadee Grernrum, Roderick L Beijersbergen, and Rene Bernards. 2016. “CRISPR Knockout Screening Outperforms shRNA and Crispri in Identifying Essential Genes.” <em>Nature Biotechnology</em> 34 (6): 631.</p>
+</div>
+<div id="ref-jeong2019beta">
+<p>Jeong, Hyun-Hwan, Seon Young Kim, Maxime WC Rousseaux, Huda Y Zoghbi, and Zhandong Liu. 2019. “Beta-Binomial Modeling of Crispr Pooled Screen Data Identifies Target Genes with Greater Sensitivity and Fewer False Negatives.” <em>Genome Research</em> 29 (6): 999–1008.</p>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
