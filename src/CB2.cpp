@@ -2,7 +2,7 @@
 #include "AdaptiveHash.h"
 using namespace std;
 // [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(cpp11)]]
+// [[Rcpp::plugins(cpp17)]]
 using namespace arma;
 
 //' A C++ function to quantify sgRNA abundance from NGS samples.
@@ -41,8 +41,13 @@ Rcpp::List quant(std::string ref_path,
     total_read_count(j) = smap.num_proc_line;
     j++;
   }
+  
+  std::vector<std::string> sgRNA_seq;
+  
+  for(auto &s: sgRNA_name) sgRNA_seq.push_back(ref.id2seq[s]);
+  
   return Rcpp::List::create(Rcpp::_["sgRNA"] = sgRNA_name, 
-                            Rcpp::_["sequence"] = ref.seq, 
+                            Rcpp::_["sequence"] = sgRNA_seq, 
                             Rcpp::_["count"] = sgRNA_count,
                             Rcpp::_["total"] = total_read_count);
 }
