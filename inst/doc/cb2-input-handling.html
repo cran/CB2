@@ -12,7 +12,7 @@
 
 <meta name="author" content="Hyun-Hwan Jeong" />
 
-<meta name="date" content="2025-10-01" />
+<meta name="date" content="2026-01-29" />
 
 <title>Handling the input matrix in CB2</title>
 
@@ -151,7 +151,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 div.csl-bib-body { }
 div.csl-entry {
 clear: both;
-margin-bottom: 0em;
 }
 .hanging div.csl-entry {
 margin-left:2em;
@@ -364,7 +363,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Handling the input matrix in CB2</h1>
 <h4 class="author">Hyun-Hwan Jeong</h4>
-<h4 class="date">2025-10-01</h4>
+<h4 class="date">2026-01-29</h4>
 
 
 
@@ -390,6 +389,7 @@ run below codes.</p>
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">library</span>(readr)</span></code></pre></div>
+<pre><code>## Warning: package &#39;readr&#39; was built under R version 4.4.3</code></pre>
 <p>The following code block shows an example of the first type of input
 which <code>CB2</code> can handle. Each column of
 <code>Evers_CRISPRn_RT112$count</code> contains counts of guide RNAs of
@@ -413,8 +413,8 @@ Entrez gene IDs are used as the gene names, <code>CB2</code> does not
 handle the input. One of the solutions for this case is changing the
 gene names to another identifier (e.g., HGNC symbol) or using another
 type of input, which will explain below.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;Evers_CRISPRn_RT112&quot;</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">head</span>(Evers_CRISPRn_RT112<span class="sc">$</span>count)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;Evers_CRISPRn_RT112&quot;</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">head</span>(Evers_CRISPRn_RT112<span class="sc">$</span>count)</span></code></pre></div>
 <pre><code>##               B1   B2   B3   A1   A2   A3
 ## RPS19_sg10 10180 9768 9406 1005 1186  911
 ## NUP93_sg4   9073 8598 8363  688  479  581
@@ -426,7 +426,7 @@ type of input, which will explain below.</p>
 which is formed as a data.frame and contains sample names and groups of
 each sample. In <code>Evers_CRISPRn_RT112</code> data,
 <code>Evers_CRISPRn_RT112$design</code> is the data.frame.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>Evers_CRISPRn_RT112<span class="sc">$</span>design</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>Evers_CRISPRn_RT112<span class="sc">$</span>design</span></code></pre></div>
 <pre><code>## # A tibble: 6 × 2
 ##   group  sample_name
 ##   &lt;chr&gt;  &lt;chr&gt;      
@@ -439,9 +439,9 @@ each sample. In <code>Evers_CRISPRn_RT112</code> data,
 <p>With the two variables, <code>CB2</code> can perform the hypothesis
 test with <code>measure_sgrna_stats</code> and
 <code>measure_gene_stats</code> functions.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>sgrna_stats <span class="ot">&lt;-</span> <span class="fu">measure_sgrna_stats</span>(Evers_CRISPRn_RT112<span class="sc">$</span>count, Evers_CRISPRn_RT112<span class="sc">$</span>design, <span class="st">&quot;before&quot;</span>, <span class="st">&quot;after&quot;</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>gene_stats <span class="ot">&lt;-</span> <span class="fu">measure_gene_stats</span>(sgrna_stats)</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">head</span>(gene_stats)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>sgrna_stats <span class="ot">&lt;-</span> <span class="fu">measure_sgrna_stats</span>(Evers_CRISPRn_RT112<span class="sc">$</span>count, Evers_CRISPRn_RT112<span class="sc">$</span>design, <span class="st">&quot;before&quot;</span>, <span class="st">&quot;after&quot;</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>gene_stats <span class="ot">&lt;-</span> <span class="fu">measure_gene_stats</span>(sgrna_stats)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">head</span>(gene_stats)</span></code></pre></div>
 <pre><code>## # A tibble: 6 × 11
 ##   gene  n_sgrna cpm_a cpm_b  logFC     p_ts     p_pa     p_pb   fdr_ts   fdr_pa
 ##   &lt;chr&gt;   &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
@@ -458,7 +458,7 @@ RNA identifier). A CSV file which was used in the <code>CB2</code>
 publication (<span class="citation">(Jeong et al. 2019)</span>). The CSV
 file contains the additional columns, the first is the <code>gene</code>
 column, and the second is the <code>sgRNA</code> column.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;https://raw.githubusercontent.com/hyunhwaj/CB2-Experiments/master/01_gene-level-analysis/data/Evers/CRISPRn-RT112.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;https://raw.githubusercontent.com/hyunhwaj/CB2-Experiments/master/01_gene-level-analysis/data/Evers/CRISPRn-RT112.csv&quot;</span>)</span></code></pre></div>
 <pre><code>## Rows: 961 Columns: 8
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -467,7 +467,7 @@ column, and the second is the <code>sgRNA</code> column.</p>
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>df</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>df</span></code></pre></div>
 <pre><code>## # A tibble: 961 × 8
 ##    gene   sgRNA       B1    B2    B3    A1    A2    A3
 ##    &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -489,7 +489,7 @@ column of genes, and the second parameter is <code>sg_id</code>, which
 specifies the column of IDs. In the following code, <code>gene_id</code>
 sets as <code>gene</code> and <code>sg_id</code> sets as
 <code>sgRNA</code>.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">measure_sgrna_stats</span>(df, Evers_CRISPRn_RT112<span class="sc">$</span>design, <span class="st">&quot;before&quot;</span>, <span class="st">&quot;after&quot;</span>, <span class="at">ge_id =</span> <span class="st">&#39;gene&#39;</span>, <span class="at">sg_id =</span> <span class="st">&#39;sgRNA&#39;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">measure_sgrna_stats</span>(df, Evers_CRISPRn_RT112<span class="sc">$</span>design, <span class="st">&quot;before&quot;</span>, <span class="st">&quot;after&quot;</span>, <span class="at">ge_id =</span> <span class="st">&#39;gene&#39;</span>, <span class="at">sg_id =</span> <span class="st">&#39;sgRNA&#39;</span>))</span></code></pre></div>
 <pre><code>##     gene    sgRNA n_a n_b      phat_a       vhat_a       phat_b       vhat_b
 ## 1  RPS19 RPS19-10   3   3 0.002323257 5.369646e-10 0.0003257504 4.174644e-10
 ## 2  NUP93  NUP93-4   3   3 0.002060560 7.828460e-10 0.0001838979 3.300861e-10
@@ -513,7 +513,7 @@ sets as <code>gene</code> and <code>sg_id</code> sets as
 ## 6 0.9999999 4.714939e-05 2.357470e-05 0.9999999</code></pre>
 <div id="references" class="section level3 unnumbered">
 <h3 class="unnumbered">References</h3>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-evers2016crispr" class="csl-entry">
 Evers, Bastiaan, Katarzyna Jastrzebski, Jeroen PM Heijmans, Wipawadee
 Grernrum, Roderick L Beijersbergen, and Rene Bernards. 2016.

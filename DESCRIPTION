@@ -1,8 +1,8 @@
 Package: CB2
 Type: Package
 Title: CRISPR Pooled Screen Analysis using Beta-Binomial Test
-Version: 1.3.6
-Date: 2025-10-01
+Version: 1.3.8
+Date: 2026-01-29
 Authors@R: 
   c(person(given = "Hyun-Hwan", family = "Jeong", role = c("aut", "cre"), email = "hyunhwanjeong@icloud.com"))
 Description: Provides functions for hit gene identification and quantification of sgRNA (single-guided RNA) abundances for CRISPR (Clustered Regularly Interspaced Short Palindromic Repeats) pooled screen data analysis. 
@@ -18,8 +18,8 @@ RoxygenNote: 7.3.2
 Encoding: UTF-8
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2025-10-01 13:13:27 UTC; hyun-hwanjeong
+Packaged: 2026-01-29 14:46:15 UTC; hyun-hwanjeong
 Author: Hyun-Hwan Jeong [aut, cre]
 Maintainer: Hyun-Hwan Jeong <hyunhwanjeong@icloud.com>
 Repository: CRAN
-Date/Publication: 2025-10-01 13:40:12 UTC
+Date/Publication: 2026-01-29 15:20:14 UTC
